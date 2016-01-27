@@ -801,7 +801,7 @@ static void op_ER(void);
 
 
 #define MAKEOP(name, params, returns, doc) {#name, op_ ## name, params, returns, doc}
-#define OPS 54
+#define OPS 67
 // DO NOT INSERT in the middle. there's a hack in validate() for P and PN
 static const tele_op_t tele_ops[OPS] = {
 	MAKEOP(ADD, 2, 1,"[A B] ADD A TO B"),
@@ -857,7 +857,20 @@ static const tele_op_t tele_ops[OPS] = {
 	MAKEOP(UNMUTE, 1, 0,"UNMUTE INPUT"),
 	MAKEOP(SCALE, 5, 1,"SCALE NUMBER RANGES"),
 	MAKEOP(STATE, 1, 1,"GET INPUT STATE"),
-	MAKEOP(ER, 3, 1,"EUCLIDEAN RHYTHMS")
+	MAKEOP(ER, 3, 1,"EUCLIDEAN RHYTHMS"),
+	{"+", op_ADD, 2, 1, "[A B] ADD A TO B"},
+	{"-", op_SUB, 2, 1,"[A B] SUBTRACT B FROM A"},
+	{"*", op_MUL, 2, 1,"[A B] MULTIPLY TWO VALUES"},
+	{"/", op_DIV, 2, 1,"[A B] DIVIDE FIRST BY SECOND"},
+	{"%", op_MOD, 2, 1,"[A B] MOD FIRST BY SECOND"},
+	{"==", op_EQ, 2, 1,"LOGIC: EQUAL"},
+	{"!=", op_NE, 2, 1,"LOGIC: NOT EQUAL"},
+	{"<", op_LT, 2, 1,"LOGIC: LESS THAN"},
+	{">", op_GT, 2, 1,"LOGIC: GREATER THAN"},
+	{">>", op_RSH, 2, 1, "RIGHT SHIFT"},
+	{"<<", op_LSH, 2, 1, "LEFT SHIFT"},
+	{"&&", op_AND, 2, 1,"LOGIC: AND"},
+	{"||", op_OR, 2, 1,"LOGIC: OR"}
 };
 
 static void op_ADD() {
