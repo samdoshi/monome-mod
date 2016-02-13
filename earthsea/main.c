@@ -1589,8 +1589,43 @@ static void refresh() {
 
 		if(!edge_state)
 			monomeLedBuffer[root_y*16+root_x] = 11;
-		else
+		else {
+			if (!p_playing) { // light up equivalent notes, but only if we're not playing a pattern
+			  const u8 degrees_per_octave = 12; // if we ever support multiple scales...
+			  const u8 row_offset = 5;          // or multiple layouts...
+
+			  for(u8 y=0;y<8;y++) { // for each row...
+				  // calculate the equivalent x position in this row for the current note
+				  s8 diff_y = y - root_y;
+				  s16 equivalent_x = root_x + diff_y * row_offset;
+
+				  // light it up if it's visible
+				  if (equivalent_x >=1 && equivalent_x <= 15) {
+					  monomeLedBuffer[y*16+equivalent_x] = 7;
+				  }
+
+				  // go down octaves on the current row and light up those notes
+				  s16 down_x = equivalent_x - degrees_per_octave;
+				  while (down_x >= 1) { // stop when we get below x = 1
+					  if (down_x <= 15) {
+						  monomeLedBuffer[y*16+down_x] = 3;
+					  }
+					  down_x -= degrees_per_octave;
+				  }
+				  // go up octaves on the current row and light up those notes
+				  s16 up_x = equivalent_x + degrees_per_octave;
+				  while (up_x <= 15) { // stop when we get past x = 15
+					  if (up_x >= 1) {
+						  monomeLedBuffer[y*16+up_x] = 3;
+					  }
+					  up_x += degrees_per_octave;
+				  }
+			  }
+			}
+
+			// light up the actual note pressed
 			monomeLedBuffer[root_y*16+root_x] = 15;
+		}
 
 		if(all_edit) {
 			monomeLedBuffer[(root_y)*16+root_x] = 7 + 4 * (blinker < 24);
