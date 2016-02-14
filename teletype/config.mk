@@ -121,8 +121,8 @@ ASSRCS = \
 INC_PATH = \
        ../$(THIS)           \
        ../system                                        \
-       ../system/conf      \
        ../skeleton \
+       ../skeleton/conf \
        ../skeleton/usb \
        ../skeleton/usb/ftdi \
        ../skeleton/usb/hid \
