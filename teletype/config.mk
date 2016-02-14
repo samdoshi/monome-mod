@@ -82,7 +82,7 @@ CSRCS = \
        ../skeleton/screen.c \
        ../system/timers.c \
        ../skeleton/usb.c \
-       ../system/util.c \
+       ../skeleton/util.c \
        ../skeleton/usb/ftdi/ftdi.c \
        ../skeleton/usb/ftdi/uhi_ftdi.c \
        ../skeleton/usb/hid/hid.c \
