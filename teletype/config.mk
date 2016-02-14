@@ -70,7 +70,7 @@ CSRCS = \
        ../$(THIS)/euclidean/euclidean.c    \
        ../$(THIS)/euclidean/data.c    \
        ../system/adc.c     \
-       ../system/events.c     \
+       ../skeleton/events.c     \
        ../skeleton/fix.c     \
        ../skeleton/font.c     \
        ../system/i2c.c \
