@@ -77,7 +77,6 @@ CSRCS = \
        ../system/init.c \
        ../system/interrupts.c \
        ../skeleton/kbd.c \
-       ../system/monome.c \
        ../skeleton/region.c \
        ../skeleton/screen.c \
        ../system/timers.c \
