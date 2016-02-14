@@ -81,12 +81,12 @@ CSRCS = \
        ../system/region.c \
        ../system/screen.c \
        ../system/timers.c \
-       ../system/usb.c \
+       ../skeleton/usb.c \
        ../system/util.c \
-       ../system/usb/ftdi/ftdi.c \
-       ../system/usb/ftdi/uhi_ftdi.c \
-       ../system/usb/hid/hid.c \
-       ../system/usb/hid/uhi_hid.c \
+       ../skeleton/usb/ftdi/ftdi.c \
+       ../skeleton/usb/ftdi/uhi_ftdi.c \
+       ../skeleton/usb/hid/hid.c \
+       ../skeleton/usb/hid/uhi_hid.c \
        avr32/drivers/adc/adc.c                            \
        avr32/drivers/flashc/flashc.c                      \
        avr32/drivers/gpio/gpio.c                          \
@@ -122,9 +122,10 @@ INC_PATH = \
        ../$(THIS)           \
        ../system                                        \
        ../system/conf      \
-       ../system/usb \
-       ../system/usb/ftdi \
-       ../system/usb/hid \
+       ../skeleton \
+       ../skeleton/usb \
+       ../skeleton/usb/ftdi \
+       ../skeleton/usb/hid \
        avr32/boards                                       \
        avr32/drivers/cpu/cycle_counter                    \
        avr32/drivers/flashc                               \
