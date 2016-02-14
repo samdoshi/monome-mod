@@ -71,15 +71,15 @@ CSRCS = \
        ../$(THIS)/euclidean/data.c    \
        ../system/adc.c     \
        ../system/events.c     \
-       ../system/fix.c     \
-       ../system/font.c     \
+       ../skeleton/fix.c     \
+       ../skeleton/font.c     \
        ../system/i2c.c \
        ../system/init.c \
        ../system/interrupts.c \
-       ../system/kbd.c \
+       ../skeleton/kbd.c \
        ../system/monome.c \
-       ../system/region.c \
-       ../system/screen.c \
+       ../skeleton/region.c \
+       ../skeleton/screen.c \
        ../system/timers.c \
        ../skeleton/usb.c \
        ../system/util.c \
@@ -166,7 +166,7 @@ LIBS =
 # LINKER_SCRIPT = avr32/utils/linker_scripts/at32uc3b/0256/gcc/link_uc3b0256.lds
 # LINKER_SCRIPT = avr32/drivers/flashc/flash_example/at32uc3b0256_evk1101/link_uc3b0256.lds
 # LINKER_SCRIPT = ../system/link_uc3b0256.lds
-LINKER_SCRIPT = ../system/link_uc3b0512.lds
+LINKER_SCRIPT = ../skeleton/link_uc3b0512.lds
 
 
 # Additional options for debugging. By default the common Makefile.in will
