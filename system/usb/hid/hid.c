@@ -101,5 +101,4 @@ extern void hid_clear_frame_dirty(void) {
   dirty = 0x00000000;
 }
 
-//... ASF style choice??? :S
 #include "uhc.h"

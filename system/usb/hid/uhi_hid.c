@@ -216,6 +216,7 @@ static void uhi_hid_report_reception(
 					   uhd_trans_status_t status,
 					   iram_size_t nb_transfered)
 {
+  //  int i;
 
   UNUSED(ep);
 
@@ -223,6 +224,13 @@ static void uhi_hid_report_reception(
     return; // HID transfer aborted
   }
 
+  /*
+  print_dbg("\r\n hid_report_reception: ");
+  for (i=0; i<uhi_hid_dev.report_size; i++) {
+    print_dbg(" ");
+    print_dbg_hex((unsigned long int) uhi_hid_dev.report[i]);
+  }
+  */
   /* print_dbg("\r\n hid_report_reception: "); */
   /* print_dbg("\r\n HID rx: 0x"); */
   /* print_dbg_hex(uhi_hid_dev.report_size); */
