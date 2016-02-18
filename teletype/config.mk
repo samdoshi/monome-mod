@@ -73,7 +73,7 @@ CSRCS = \
        ../skeleton/events.c     \
        ../skeleton/fix.c     \
        ../skeleton/font.c     \
-       ../system/i2c.c \
+       ../skeleton/i2c.c \
        ../system/init.c \
        ../system/interrupts.c \
        ../skeleton/kbd.c \
