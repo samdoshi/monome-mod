@@ -79,7 +79,7 @@ CSRCS = \
        ../skeleton/kbd.c \
        ../skeleton/region.c \
        ../skeleton/screen.c \
-       ../system/timers.c \
+       ../skeleton/timers.c \
        ../skeleton/usb.c \
        ../skeleton/util.c \
        ../skeleton/usb/ftdi/ftdi.c \
