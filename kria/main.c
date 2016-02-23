@@ -291,7 +291,7 @@ void timers_unset_monome(void) {
 static void note0offTimer_callback(void* o) {
 	if(need0off) {
 		need0off = 0;
-		timer_reset(&note0offTimer, 10000);
+		timer_reset_set(&note0offTimer, 10000);
 		gpio_clr_gpio_pin(B00);
 		gpio_clr_gpio_pin(B02);
 	}
@@ -476,7 +476,7 @@ static void tr0Timer_callback(void* o) {
 		cv0 = ET[cur_scale[0][note[0]] + (oct[0] * 12) + (trans[0] & 0xf) + ((trans[0] >> 4)*5)];
 
 		need0off = 1;
-		timer_reset(&note0offTimer, dur[0]);
+		timer_reset_set(&note0offTimer, dur[0]);
 
 		tr[0] = 1;
 	}
@@ -503,7 +503,7 @@ static void tr0Timer_callback(void* o) {
 static void note1offTimer_callback(void* o) {
 	if(need1off) {
 		need1off = 0;
-		timer_reset(&note1offTimer, 10000);
+		timer_reset_set(&note1offTimer, 10000);
 		gpio_clr_gpio_pin(B01);
 		gpio_clr_gpio_pin(B03);
 	}
@@ -681,7 +681,7 @@ static void tr1Timer_callback(void* o) {
 		cv1 = ET[cur_scale[1][note[1]] + (oct[1] * 12) + (trans[1] & 0xf) + ((trans[1] >> 4)*5)];
 
 		need1off = 1;
-		timer_reset(&note1offTimer, dur[1]);
+		timer_reset_set(&note1offTimer, dur[1]);
 
 		tr[1] = 1;
 	}
