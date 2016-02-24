@@ -75,6 +75,7 @@ CSRCS = \
        ../skeleton/font.c     \
        ../skeleton/i2c.c \
        ../system/init.c \
+       ../skeleton/init_common.c \
        ../system/interrupts.c \
        ../skeleton/kbd.c \
        ../skeleton/region.c \
