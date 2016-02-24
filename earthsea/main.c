@@ -19,7 +19,7 @@
 // skeleton
 #include "types.h"
 #include "events.h"
-#include "init.h"
+#include "init_trilogy.h"
 #include "init_common.h"
 #include "interrupts.h"
 #include "monome.h"

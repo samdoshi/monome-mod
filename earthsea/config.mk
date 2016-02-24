@@ -65,7 +65,7 @@ CSRCS = \
        ../$(THIS)/main.c    \
        ../skeleton/adc.c     \
        ../skeleton/events.c     \
-       ../skeleton/init.c \
+       ../skeleton/init_trilogy.c \
        ../skeleton/init_common.c \
        ../skeleton/i2c.c \
        ../skeleton/interrupts.c \

@@ -16,7 +16,7 @@
 #include "types.h"
 #include "events.h"
 #include "i2c.h"
-#include "init.h"
+#include "init_trilogy.h"
 #include "init_common.h"
 #include "interrupts.h"
 #include "monome.h"

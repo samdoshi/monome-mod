@@ -66,7 +66,7 @@ CSRCS = \
        ../skeleton/adc.c     \
        ../skeleton/events.c     \
        ../skeleton/i2c.c     \
-       ../skeleton/init.c \
+       ../skeleton/init_trilogy.c \
        ../skeleton/init_common.c \
        ../skeleton/interrupts.c \
        ../skeleton/monome.c \
