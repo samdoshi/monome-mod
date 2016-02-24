@@ -21,7 +21,6 @@
 #include "events.h"
 #include "init_trilogy.h"
 #include "init_common.h"
-#include "interrupts.h"
 #include "monome.h"
 #include "timers.h"
 #include "adc.h"
