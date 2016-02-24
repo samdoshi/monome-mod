@@ -24,7 +24,7 @@
 // system
 #include "types.h"
 #include "events.h"
-#include "init.h"
+#include "init_teletype.h"
 #include "init_common.h"
 #include "interrupts.h"
 #include "i2c.h"
