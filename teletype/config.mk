@@ -69,7 +69,7 @@ CSRCS = \
        ../$(THIS)/teletype.c    \
        ../$(THIS)/euclidean/euclidean.c    \
        ../$(THIS)/euclidean/data.c    \
-       ../system/adc.c     \
+       ../skeleton/adc.c     \
        ../skeleton/events.c     \
        ../skeleton/fix.c     \
        ../skeleton/font.c     \
