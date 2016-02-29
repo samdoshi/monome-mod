@@ -106,6 +106,7 @@ INC_PATH = \
        ../$(THIS)           \
        ../skeleton                                        \
        ../skeleton/conf      \
+       ../skeleton/conf/trilogy \
        ../skeleton/usb \
        ../skeleton/usb/ftdi \
        ../skeleton/usb/hid \

@@ -43,11 +43,11 @@
 
 #include "compiler.h"
 
-#define FOSC32          32768                                 
-#define OSC32_STARTUP   AVR32_PM_OSCCTRL32_STARTUP_8192_RCOSC 
+#define FOSC32          32768
+#define OSC32_STARTUP   AVR32_PM_OSCCTRL32_STARTUP_8192_RCOSC
 
-#define FOSC0           12000000                              
-#define OSC0_STARTUP    AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC  
+#define FOSC0           12000000
+#define OSC0_STARTUP    AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC
 
 
 /* These are documented in services/basic/clock/uc3b0_b1/osc.h */
@@ -154,9 +154,6 @@
 #define TWI_CLOCK_PIN           AVR32_TWI_SCL_0_0_PIN
 #define TWI_CLOCK_FUNCTION  	AVR32_TWI_SCL_0_0_FUNCTION
 #define TWI_SPEED				50000
-//#define TWI_SPEED 50000;
-// #define TWI_SPEED 132000;
-
 
 
 #endif // CONF_BOARD_H

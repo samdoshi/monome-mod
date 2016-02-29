@@ -122,6 +122,7 @@ INC_PATH = \
        ../system                                        \
        ../skeleton \
        ../skeleton/conf \
+       ../skeleton/conf/teletype \
        ../skeleton/usb \
        ../skeleton/usb/ftdi \
        ../skeleton/usb/hid \

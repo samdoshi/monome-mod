@@ -43,11 +43,11 @@
 
 #include "compiler.h"
 
-#define FOSC32          32768                                 
-#define OSC32_STARTUP   AVR32_PM_OSCCTRL32_STARTUP_8192_RCOSC 
+#define FOSC32          32768
+#define OSC32_STARTUP   AVR32_PM_OSCCTRL32_STARTUP_8192_RCOSC
 
-#define FOSC0           12000000                              
-#define OSC0_STARTUP    AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC  
+#define FOSC0           12000000
+#define OSC0_STARTUP    AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC
 
 
 /* These are documented in services/basic/clock/uc3b0_b1/osc.h */
@@ -70,19 +70,22 @@
 #define FPBA_HZ   		FMCK_HZ    // peripheral bus A */
 #define FPBB_HZ   		FMCK_HZ    // peripheral bus B */
 
-
-#define B00   AVR32_PIN_PB00
-#define B01   AVR32_PIN_PB01
-#define B02   AVR32_PIN_PB02
-#define B03   AVR32_PIN_PB03
-#define B04   AVR32_PIN_PB04
-#define B05   AVR32_PIN_PB05
-#define B06   AVR32_PIN_PB06
-#define B07   AVR32_PIN_PB07
+#define A00   AVR32_PIN_TDI
+#define A01   AVR32_PIN_TDO
+#define A02   AVR32_PIN_TMS
+#define A03   AVR32_PIN_PA03
+#define A04   AVR32_PIN_PA04
+#define A05   AVR32_PIN_PA05
+#define A06   AVR32_PIN_PA06
+#define A07   AVR32_PIN_PA07
 #define B08   AVR32_PIN_PB08
 #define B09   AVR32_PIN_PB09
 #define B10   AVR32_PIN_PB10
+#define B11   AVR32_PIN_PB11
 #define NMI   AVR32_PIN_PA13
+
+#define OLED_DC_PIN 	AVR32_PIN_PB04
+#define OLED_RES_PIN 	AVR32_PIN_PB03
 
 
 #define USART                       (&AVR32_USART1)
@@ -143,22 +146,21 @@
 #define SPI_NPCS0_FUNCTION    AVR32_SPI_NPCS_0_0_FUNCTION
 #define SPI_NPCS1_PIN         AVR32_SPI_NPCS_1_0_PIN
 #define SPI_NPCS1_FUNCTION    AVR32_SPI_NPCS_1_0_FUNCTION
+#define SPI_NPCS2_PIN         AVR32_SPI_NPCS_2_1_PIN
+#define SPI_NPCS2_FUNCTION    AVR32_SPI_NPCS_2_1_FUNCTION
 
 #define DAC_SPI 0
 #define ADC_SPI 1
+#define OLED_SPI 2
 
 
-
- //TWI
+//TWI
 #define TWI 					(&AVR32_TWI)
 #define TWI_DATA_PIN			AVR32_TWI_SDA_0_0_PIN
 #define TWI_DATA_FUNCTION   	AVR32_TWI_SDA_0_0_FUNCTION
 #define TWI_CLOCK_PIN           AVR32_TWI_SCL_0_0_PIN
 #define TWI_CLOCK_FUNCTION  	AVR32_TWI_SCL_0_0_FUNCTION
-#define TWI_SPEED				50000
-//#define TWI_SPEED 50000;
-// #define TWI_SPEED 132000;
-
+#define TWI_SPEED 132000;
 
 
 #endif // CONF_BOARD_H
