@@ -7,7 +7,7 @@
 #include <inttypes.h>
 
 #include "teletype.h"
-#include "../../system/util.h"
+#include "../../skeleton/util.h"
 
 
 void tele_metro(int16_t m, int16_t m_act, uint8_t m_reset) {

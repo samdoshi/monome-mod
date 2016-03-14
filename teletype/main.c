@@ -24,8 +24,8 @@
 // system
 #include "types.h"
 #include "events.h"
-#include "init.h"
-#include "interrupts.h"
+#include "init_teletype.h"
+#include "init_common.h"
 #include "i2c.h"
 #include "kbd.h"
 // #include "monome.h"
@@ -1733,7 +1733,7 @@ static void tele_cv(uint8_t i, int16_t v, uint8_t s) {
 	
 	aout[i].a = aout[i].now<<16;
 
-	timer_trigger(&adcTimer);
+	timer_manual(&adcTimer);
 }
 
 static void tele_cv_slew(uint8_t i, int16_t v) {

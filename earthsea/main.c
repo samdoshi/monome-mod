@@ -19,8 +19,8 @@
 // skeleton
 #include "types.h"
 #include "events.h"
-#include "init.h"
-#include "interrupts.h"
+#include "init_trilogy.h"
+#include "init_common.h"
 #include "monome.h"
 #include "timers.h"
 #include "adc.h"

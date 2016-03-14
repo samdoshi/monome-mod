@@ -69,24 +69,23 @@ CSRCS = \
        ../$(THIS)/teletype.c    \
        ../$(THIS)/euclidean/euclidean.c    \
        ../$(THIS)/euclidean/data.c    \
-       ../system/adc.c     \
-       ../system/events.c     \
-       ../system/fix.c     \
-       ../system/font.c     \
-       ../system/i2c.c \
-       ../system/init.c \
-       ../system/interrupts.c \
-       ../system/kbd.c \
-       ../system/monome.c \
-       ../system/region.c \
-       ../system/screen.c \
-       ../system/timers.c \
-       ../system/usb.c \
-       ../system/util.c \
-       ../system/usb/ftdi/ftdi.c \
-       ../system/usb/ftdi/uhi_ftdi.c \
-       ../system/usb/hid/hid.c \
-       ../system/usb/hid/uhi_hid.c \
+       ../skeleton/adc.c     \
+       ../skeleton/events.c     \
+       ../skeleton/fix.c     \
+       ../skeleton/font.c     \
+       ../skeleton/i2c.c \
+       ../skeleton/init_teletype.c \
+       ../skeleton/init_common.c \
+       ../skeleton/kbd.c \
+       ../skeleton/region.c \
+       ../skeleton/screen.c \
+       ../skeleton/timers.c \
+       ../skeleton/usb.c \
+       ../skeleton/util.c \
+       ../skeleton/usb/ftdi/ftdi.c \
+       ../skeleton/usb/ftdi/uhi_ftdi.c \
+       ../skeleton/usb/hid/hid.c \
+       ../skeleton/usb/hid/uhi_hid.c \
        avr32/drivers/adc/adc.c                            \
        avr32/drivers/flashc/flashc.c                      \
        avr32/drivers/gpio/gpio.c                          \
@@ -121,10 +120,12 @@ ASSRCS = \
 INC_PATH = \
        ../$(THIS)           \
        ../system                                        \
-       ../system/conf      \
-       ../system/usb \
-       ../system/usb/ftdi \
-       ../system/usb/hid \
+       ../skeleton \
+       ../skeleton/conf \
+       ../skeleton/conf/teletype \
+       ../skeleton/usb \
+       ../skeleton/usb/ftdi \
+       ../skeleton/usb/hid \
        avr32/boards                                       \
        avr32/drivers/cpu/cycle_counter                    \
        avr32/drivers/flashc                               \
@@ -165,7 +166,7 @@ LIBS =
 # LINKER_SCRIPT = avr32/utils/linker_scripts/at32uc3b/0256/gcc/link_uc3b0256.lds
 # LINKER_SCRIPT = avr32/drivers/flashc/flash_example/at32uc3b0256_evk1101/link_uc3b0256.lds
 # LINKER_SCRIPT = ../system/link_uc3b0256.lds
-LINKER_SCRIPT = ../system/link_uc3b0512.lds
+LINKER_SCRIPT = ../skeleton/link_uc3b0512.lds
 
 
 # Additional options for debugging. By default the common Makefile.in will

@@ -66,8 +66,8 @@ CSRCS = \
        ../skeleton/adc.c     \
        ../skeleton/events.c     \
        ../skeleton/i2c.c \
-       ../skeleton/init.c \
-       ../skeleton/interrupts.c \
+       ../skeleton/init_trilogy.c \
+       ../skeleton/init_common.c \
        ../skeleton/monome.c \
        ../skeleton/timers.c \
        ../skeleton/usb.c \
@@ -106,6 +106,7 @@ INC_PATH = \
        ../$(THIS)           \
        ../skeleton                                        \
        ../skeleton/conf      \
+       ../skeleton/conf/trilogy \
        ../skeleton/usb \
        ../skeleton/usb/ftdi \
        ../skeleton/usb/hid \
