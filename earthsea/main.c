@@ -145,7 +145,6 @@ u16 edge_state;
 u8 shape_counter;
 
 u8 clock_phase;
-u16 clock_time, clock_temp;
 
 u16 adc[4];
 u16 adc_last[4];
@@ -581,7 +580,7 @@ void pattern_linearize() {
 void pattern_time_half() {
 	u8 i;
 
-	for(i=0;i<es.p[p_select].length+1;i++) {
+	for(i=0;i<es.p[p_select].length;i++) {
 		es.p[p_select].e[i].interval = es.p[p_select].e[i].interval >> 1;
 		if(!es.p[p_select].e[i].interval) es.p[p_select].e[i].interval = 1;
 	}
@@ -596,7 +595,7 @@ void pattern_time_half() {
 void pattern_time_double() {
 	u8 i;
 
-	for(i=0;i<es.p[p_select].length+1;i++)
+	for(i=0;i<es.p[p_select].length;i++)
 			es.p[p_select].e[i].interval = es.p[p_select].e[i].interval << 1;
 
 	es.p[p_select].total_time = 0;
@@ -2011,8 +2010,8 @@ int main(void)
 	timer_add(&clockTimer,6,&clockTimer_callback, NULL);
 	timer_add(&cvTimer,5,&cvTimer_callback, NULL);
 	timer_add(&keyTimer,51,&keyTimer_callback, NULL);
+	// adc timer is added inside the monome connect handler 
 	// timer_add(&adcTimer,61,&adcTimer_callback, NULL);
-	clock_temp = 10000; // out of ADC range to force tempo
 
 
 	while (true) {
