@@ -56,7 +56,10 @@ int euclidean(int fill, int len, int step) {
 	int entry_size = len / 8;
 	if (len % 8 > 0) entry_size++;
 	const char* table = &len_table[fill * entry_size];
-	return get_bit(table, step % len);
+	// adjust step, s.t. 0 <= step < len
+	int remainder = step % len;
+	int modulo = remainder < 0 ? remainder + len : remainder;
+	return get_bit(table, modulo);
  }
 
 
