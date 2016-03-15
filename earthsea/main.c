@@ -833,7 +833,8 @@ static void handler_MonomeGridKey(s32 data) {
 	u8 x, y, z, index, i1, found;
 
 	monome_grid_key_parse_event_data(data, &x, &y, &z);
-	// print_dbg("\r\n monome event; x: "); 
+
+	// print_dbg("\r\n grid; x: "); 
 	// print_dbg_hex(x); 
 	// print_dbg("; y: 0x"); 
 	// print_dbg_hex(y); 
@@ -1079,6 +1080,7 @@ static void handler_MonomeGridKey(s32 data) {
 			// EDGE MODE
 			if(mode == mEdge) {
 				shape_counter = 0;
+				reset_hys();
 
 				if(y==7) {
 					es.edge_fixed_time = x*16;
