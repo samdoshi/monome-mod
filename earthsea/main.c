@@ -2315,11 +2315,6 @@ static void handler_MidiPacket(s32 raw) {
   }
 }
 
-static void handler_MidiRefresh(s32 data) {
-	// print_dbg("\r\nmidi refresh: 0x");
-	// print_dbg_hex(data);
-}
-
 static void es_midi_process_ii(uint8_t i, int d) {
 	// for now we do nothing
 	// tt clocked arp would be fun
@@ -2347,7 +2342,6 @@ static inline void assign_main_event_handlers(void) {
 	app_event_handlers[ kEventMidiConnect ]	    = &handler_MidiConnect ;
 	app_event_handlers[ kEventMidiDisconnect ]  = &handler_MidiDisconnect ;
 	app_event_handlers[ kEventMidiPacket ]      = &handler_MidiPacket ;
-	app_event_handlers[ kEventMidiRefresh ]     = &handler_MidiRefresh ;
 }
 
 // app event loop
