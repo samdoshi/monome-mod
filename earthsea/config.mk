@@ -70,7 +70,7 @@ CSRCS = \
        ../skeleton/i2c.c \
        ../skeleton/monome.c \
        ../skeleton/timers.c \
-			 ../skeleton/notes.c \
+       ../skeleton/notes.c \
        ../skeleton/usb.c \
        ../skeleton/util.c \
        ../skeleton/usb/ftdi/ftdi.c \
