@@ -27,6 +27,8 @@
 #include "util.h"
 #include "ftdi.h"
 #include "i2c.h"
+#include "midi.h"
+#include "notes.h"
 
 // this
 #include "conf_board.h"
@@ -40,30 +42,118 @@
 #define EVENTS_PER_PATTERN 128
 #define SLEW_CV_OFF_THRESH 4000
 
+#define MIDI_NOTE_MAX 120
+#define MIDI_BEND_ZERO 0x2000  // 1 << 13
+#define MIDI_BEND_SLEW 15
+
 const u16 SHAPE_PATTERN[16] = {256, 288, 160, 384, 272, 292, 84, 448, 273, 432, 325, 168, 336, 276, 162};
 const u8 SHAPE_OFF_Y[9] = {0, 1, 1, 0, 0, 2, 2, 0, 0};
 
 const u8 EDGE_GLYPH[3][4] = {{7,5,5,13}, {15,9,9,9}, {15,0,0,0} };
 
-const u16 SEMI[64] = {
-	0, 34, 68, 102, 136, 170, 204, 238, 273, 307, 341, 375, 409, 443, 477, 512, 546, 580, 614, 648, 682, 716,
-	750, 785, 819, 853, 887, 921, 955, 989, 1024, 1058, 1092, 1126, 1160, 1194, 1228, 1262, 1297, 1331, 1365,
-	1399, 1433, 1467, 1501, 1536, 1570, 1604, 1638, 1672, 1706, 1740, 1774, 1809, 1843, 1877, 1911, 1945, 1979,
-	2013, 2048, 2082, 2116, 2150
+// step = 4096.0 / (10 octave * 12.0 semitones per octave)
+// [int(n * step) for n in xrange(0,128)]
+const u16 SEMI[128] = { 
+	0, 34, 68, 102, 136, 170, 204, 238, 273, 307, 341, 375, 409, 443, 477, 512,
+	546, 580, 614, 648, 682, 716, 750, 785, 819, 853, 887, 921, 955, 989, 1024,
+	1058, 1092, 1126, 1160, 1194, 1228, 1262, 1297, 1331, 1365, 1399, 1433, 1467,
+	1501, 1536, 1570, 1604, 1638, 1672, 1706, 1740, 1774, 1809, 1843, 1877, 1911,
+	1945, 1979, 2013, 2048, 2082, 2116, 2150, 2184, 2218, 2252, 2286, 2321, 2355,
+	2389, 2423, 2457, 2491, 2525, 2560, 2594, 2628, 2662, 2696, 2730, 2764, 2798,
+	2833, 2867, 2901, 2935, 2969, 3003, 3037, 3072, 3106, 3140, 3174, 3208, 3242,
+	3276, 3310, 3345, 3379, 3413, 3447, 3481, 3515, 3549, 3584, 3618, 3652, 3686,
+	3720, 3754, 3788, 3822, 3857, 3891, 3925, 3959, 3993, 4027, 4061, 4096, 4130,
+	4164, 4198, 4232, 4266, 4300, 4334
 };
 
-const u16 EXP[256] = {0, 0, 0, 1, 2, 2, 3, 4, 5, 6, 7, 9, 10, 11, 13, 14, 16, 17, 19, 20, 22, 24, 25, 27, 29, 31,
-	33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 54, 56, 58, 60, 63, 65, 68, 70, 72, 75, 77, 80, 83, 85, 88, 91, 93,
-	96, 99, 101, 104, 107, 110, 113, 116, 119, 122, 125, 128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 159, 162,
-	165, 168, 172, 175, 178, 182, 185, 189, 192, 195, 199, 202, 206, 209, 213, 217, 220, 224, 227, 231, 235, 238,
-	242, 246, 250, 253, 257, 261, 265, 268, 272, 276, 280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324, 328,
-	332, 336, 341, 345, 349, 353, 357, 362, 366, 370, 374, 379, 383, 387, 392, 396, 400, 405, 409, 414, 418, 423, 427,
-	432, 436, 441, 445, 450, 454, 459, 463, 468, 473, 477, 482, 487, 491, 496, 501, 505, 510, 515, 520, 525, 529, 534,
-	539, 544, 549, 554, 559, 563, 568, 573, 578, 583, 588, 593, 598, 603, 608, 613, 618, 623, 629, 634, 639, 644, 649,
-	654, 659, 665, 670, 675, 680, 686, 691, 696, 701, 707, 712, 717, 723, 728, 733, 739, 744, 749, 755, 760, 766, 771,
-	777, 782, 788, 793, 799, 804, 810, 815, 821, 826, 832, 838, 843, 849, 855, 860, 866, 872, 877, 883, 889, 894, 900,
-	906, 912, 917, 923, 929, 935, 941, 946, 952, 958, 964, 970, 976, 982, 988, 994, 1000, 1006, 1012};
+const u16 EXP[256] = {
+	0, 0, 0, 1, 2, 2, 3, 4, 5, 6, 7, 9, 10, 11, 13, 14, 16, 17, 19, 20, 22, 24,
+	25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 54, 56, 58, 60, 63,
+	65, 68, 70, 72, 75, 77, 80, 83, 85, 88, 91, 93, 96, 99, 101, 104, 107, 110,
+	113, 116, 119, 122, 125, 128, 131, 134, 137, 140, 143, 146, 149, 152, 155,
+	159, 162, 165, 168, 172, 175, 178, 182, 185, 189, 192, 195, 199, 202, 206,
+	209, 213, 217, 220, 224, 227, 231, 235, 238, 242, 246, 250, 253, 257, 261,
+	265, 268, 272, 276, 280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320,
+	324, 328, 332, 336, 341, 345, 349, 353, 357, 362, 366, 370, 374, 379, 383,
+	387, 392, 396, 400, 405, 409, 414, 418, 423, 427, 432, 436, 441, 445, 450,
+	454, 459, 463, 468, 473, 477, 482, 487, 491, 496, 501, 505, 510, 515, 520,
+	525, 529, 534, 539, 544, 549, 554, 559, 563, 568, 573, 578, 583, 588, 593,
+	598, 603, 608, 613, 618, 623, 629, 634, 639, 644, 649, 654, 659, 665, 670,
+	675, 680, 686, 691, 696, 701, 707, 712, 717, 723, 728, 733, 739, 744, 749,
+	755, 760, 766, 771, 777, 782, 788, 793, 799, 804, 810, 815, 821, 826, 832,
+	838, 843, 849, 855, 860, 866, 872, 877, 883, 889, 894, 900, 906, 912, 917,
+	923, 929, 935, 941, 946, 952, 958, 964, 970, 976, 982, 988, 994, 1000, 1006,
+	1012
+};
+	
+// step = 0.9 / 128
+// [int((math.log10(0.1 + (i * step)) + 1) * 4096) for i in xrange(0,128)]
+const u16 LOG[128] = { 
+	0, 120, 234, 340, 440, 535, 626, 711, 793, 872, 947, 1019, 1088, 1154, 1219,
+	1281, 1340, 1398, 1454, 1509, 1561, 1613, 1663, 1711, 1758, 1804, 1849, 1893,
+	1935, 1977, 2017, 2057, 2096, 2134, 2172, 2208, 2244, 2279, 2313, 2347, 2380,
+	2413, 2445, 2476, 2507, 2537, 2567, 2596, 2625, 2653, 2681, 2709, 2736, 2762,
+	2789, 2815, 2840, 2865, 2890, 2915, 2939, 2962, 2986, 3009, 3032, 3055, 3077,
+	3099, 3121, 3142, 3163, 3184, 3205, 3226, 3246, 3266, 3286, 3306, 3325, 3344,
+	3363, 3382, 3400, 3419, 3437, 3455, 3473, 3491, 3508, 3525, 3543, 3559, 3576,
+	3593, 3610, 3626, 3642, 3658, 3674, 3690, 3705, 3721, 3736, 3752, 3767, 3782,
+	3797, 3811, 3826, 3840, 3855, 3869, 3883, 3897, 3911, 3925, 3939, 3952, 3966,
+	3979, 3993, 4006, 4019, 4032, 4045, 4058, 4070, 4083
+};
 
+// step = 1.0 / 128
+// [int(math.pow(i * step, 2) * 4096) for i in xrange(0,128)]
+const u16 EXP2[128] = {
+	0, 0, 1, 2, 4, 6, 9, 12, 16, 20, 25, 30, 36, 42, 49, 56, 64, 72, 81, 90, 100,
+	110, 121, 132, 144, 156, 169, 182, 196, 210, 225, 240, 256, 272, 289, 306,
+	324, 342, 361, 380, 400, 420, 441, 462, 484, 506, 529, 552, 576, 600, 625,
+	650, 676, 702, 729, 756, 784, 812, 841, 870, 900, 930, 961, 992, 1024, 1056,
+	1089, 1122, 1156, 1190, 1225, 1260, 1296, 1332, 1369, 1406, 1444, 1482, 1521,
+	1560, 1600, 1640, 1681, 1722, 1764, 1806, 1849, 1892, 1936, 1980, 2025, 2070,
+	2116, 2162, 2209, 2256, 2304, 2352, 2401, 2450, 2500, 2550, 2601, 2652, 2704,
+	2756, 2809, 2862, 2916, 2970, 3025, 3080, 3136, 3192, 3249, 3306, 3364, 3422,
+	3481, 3540, 3600, 3660, 3721, 3782, 3844, 3906, 3969, 4032
+};
+
+// step = 4096.0 / (10 octave * 12.0 semitones per octave)
+// semi_per_octave = step * 12
+// bend_step = semi_per_octave / 512.0
+// [int(n * bend_step) for n in xrange(0,512)]
+const u16 BEND1[512] = {
+	0, 0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 16, 17,
+	18, 19, 20, 20, 21, 22, 23, 24, 24, 25, 26, 27, 28, 28, 29, 30, 31, 32, 32,
+	33, 34, 35, 36, 36, 37, 38, 39, 40, 40, 41, 42, 43, 44, 44, 45, 46, 47, 48,
+	48, 49, 50, 51, 52, 52, 53, 54, 55, 56, 56, 57, 58, 59, 60, 60, 61, 62, 63,
+	64, 64, 65, 66, 67, 68, 68, 69, 70, 71, 72, 72, 73, 74, 75, 76, 76, 77, 78,
+	79, 80, 80, 81, 82, 83, 84, 84, 85, 86, 87, 88, 88, 89, 90, 91, 92, 92, 93,
+	94, 95, 96, 96, 97, 98, 99, 100, 100, 101, 102, 103, 104, 104, 105, 106, 107,
+	108, 108, 109, 110, 111, 112, 112, 113, 114, 115, 116, 116, 117, 118, 119,
+	120, 120, 121, 122, 123, 124, 124, 125, 126, 127, 128, 128, 129, 130, 131,
+	132, 132, 133, 134, 135, 136, 136, 137, 138, 139, 140, 140, 141, 142, 143,
+	144, 144, 145, 146, 147, 148, 148, 149, 150, 151, 152, 152, 153, 154, 155,
+	156, 156, 157, 158, 159, 160, 160, 161, 162, 163, 164, 164, 165, 166, 167,
+	168, 168, 169, 170, 171, 172, 172, 173, 174, 175, 176, 176, 177, 178, 179,
+	180, 180, 181, 182, 183, 184, 184, 185, 186, 187, 188, 188, 189, 190, 191,
+	192, 192, 193, 194, 195, 196, 196, 197, 198, 199, 200, 200, 201, 202, 203,
+	204, 204, 205, 206, 207, 208, 208, 209, 210, 211, 212, 212, 213, 214, 215,
+	216, 216, 217, 218, 219, 220, 220, 221, 222, 223, 224, 224, 225, 226, 227,
+	228, 228, 229, 230, 231, 232, 232, 233, 234, 235, 236, 236, 237, 238, 239,
+	240, 240, 241, 242, 243, 244, 244, 245, 246, 247, 248, 248, 249, 250, 251,
+	252, 252, 253, 254, 255, 256, 256, 257, 258, 259, 260, 260, 261, 262, 263,
+	264, 264, 265, 266, 267, 268, 268, 269, 270, 271, 272, 272, 273, 274, 275,
+	276, 276, 277, 278, 279, 280, 280, 281, 282, 283, 284, 284, 285, 286, 287,
+	288, 288, 289, 290, 291, 292, 292, 293, 294, 295, 296, 296, 297, 298, 299,
+	300, 300, 301, 302, 303, 304, 304, 305, 306, 307, 308, 308, 309, 310, 311,
+	312, 312, 313, 314, 315, 316, 316, 317, 318, 319, 320, 320, 321, 322, 323,
+	324, 324, 325, 326, 327, 328, 328, 329, 330, 331, 332, 332, 333, 334, 335,
+	336, 336, 337, 338, 339, 340, 340, 341, 342, 343, 344, 344, 345, 346, 347,
+	348, 348, 349, 350, 351, 352, 352, 353, 354, 355, 356, 356, 357, 358, 359,
+	360, 360, 361, 362, 363, 364, 364, 365, 366, 367, 368, 368, 369, 370, 371,
+	372, 372, 373, 374, 375, 376, 376, 377, 378, 379, 380, 380, 381, 382, 383,
+	384, 384, 385, 386, 387, 388, 388, 389, 390, 391, 392, 392, 393, 394, 395,
+	396, 396, 397, 398, 399, 400, 400, 401, 402, 403, 404, 404, 405, 406, 407,
+	408, 408
+};
 
 typedef enum { eStandard, eFixed, eDrone } eEdge;
 typedef enum { mNormal, mSlew, mEdge, mSelect, mBank } eMode;
@@ -99,7 +189,11 @@ typedef struct {
 	u32 a;
 } aout_t;
 
-
+typedef struct {
+	u8 port_active;
+	u16 port_time;
+	aout_t aout[4];
+} es_suspend_t;
 
 typedef struct {
 	eEdge edge;
@@ -126,7 +220,7 @@ typedef const struct {
 } nvram_data_t;
 
 es_set es;
-
+es_suspend_t suspend;
 
 u8 preset_mode, preset_select, front_timer;
 u8 glyph[8];
@@ -169,12 +263,18 @@ u8 all_edit;
 
 u8 clock_mode;
 
+u8 midi_legato;
+u8 sustain_active;
+s16 pitch_offset;
+u8 vel_shape, track_shape;
+
 s8 move_x, move_y;
 
 //this
 u16 port_time;
 
 u8 port_active, port_edit, port_toggle;
+volatile u8 slew_active;
 
 
 u8 SIZE, LENGTH, VARI;
@@ -234,6 +334,7 @@ void reset_hys(void);
 
 
 static void es_process_ii(uint8_t i, int d);
+static void es_midi_process_ii(uint8_t i, int d);
 
 
 void reset_hys() {
@@ -269,26 +370,10 @@ static softTimer_t cvTimer = { .next = NULL, .prev = NULL };
 static softTimer_t adcTimer = { .next = NULL, .prev = NULL };
 static softTimer_t monomePollTimer = { .next = NULL, .prev = NULL };
 static softTimer_t monomeRefreshTimer  = { .next = NULL, .prev = NULL };
+static softTimer_t midiPollTimer = { .next = NULL, .prev = NULL };
 
 
-static void cvTimer_callback(void* o) { 
-	u8 i;
-
-	for(i=0;i<4;i++)
-		if(aout[i].step) {
-			aout[i].step--;
-
-			if(aout[i].step == 0) {
-				aout[i].now = aout[i].target;
-			}
-			else {
-				aout[i].a += aout[i].delta;
-				aout[i].now = aout[i].a >> 16;
-			}
-
-			monomeFrameDirty++;
-		}
-
+static void aout_write(void) {
 	spi_selectChip(SPI,DAC_SPI);
 	spi_write(SPI,0x31);
 	spi_write(SPI,aout[2].now>>4);
@@ -297,7 +382,7 @@ static void cvTimer_callback(void* o) {
 	spi_write(SPI,aout[0].now>>4);
 	spi_write(SPI,aout[0].now<<4);
 	spi_unselectChip(SPI,DAC_SPI);
-
+	
 	spi_selectChip(SPI,DAC_SPI);
 	spi_write(SPI,0x38);
 	spi_write(SPI,aout[3].now>>4);
@@ -306,6 +391,29 @@ static void cvTimer_callback(void* o) {
 	spi_write(SPI,aout[1].now>>4);
 	spi_write(SPI,aout[1].now<<4);
 	spi_unselectChip(SPI,DAC_SPI);
+}
+
+static void cvTimer_callback(void* o) { 
+	u8 i;
+	
+	if(slew_active) {
+		for(i=0;i<4;i++) {
+			if(aout[i].step) {
+				aout[i].step--;
+				
+				if(aout[i].step == 0) {
+					aout[i].now = aout[i].target;
+				}
+				else {
+					aout[i].a += aout[i].delta;
+					aout[i].now = aout[i].a >> 16;
+				}
+				
+				monomeFrameDirty++;
+			}
+		}
+		aout_write();
+	}
 }
 
 static void clockTimer_callback(void* o) {  
@@ -623,6 +731,12 @@ static void adcTimer_callback(void* o) {
 	event_post(&e);
 }
 
+//midi polling callback
+static void midi_poll_timer_callback(void* obj) {
+  // asynchronous, non-blocking read
+  // UHC callback spawns appropriate events
+  midi_read();
+}
 
 // monome polling callback
 static void monome_poll_timer_callback(void* obj) {
@@ -659,8 +773,13 @@ void timers_unset_monome(void) {
 ////////////////////////////////////////////////////////////////////////////////
 // event handlers
 
-static void handler_FtdiConnect(s32 data) { ftdi_setup(); }
-static void handler_FtdiDisconnect(s32 data) { 
+static void handler_FtdiConnect(s32 data) {
+	// print_dbg("\r\n// ftdi connect ///////////////////");
+	ftdi_setup();
+}
+
+static void handler_FtdiDisconnect(s32 data) {
+	// print_dbg("\r\n// ftdi disconnect ////////////////");
 	timers_unset_monome();
 	// event_t e = { .type = kEventMonomeDisconnect };
 	// event_post(&e);
@@ -818,7 +937,7 @@ static void handler_KeyTimer(s32 data) {
 
 
 static void handler_ClockNormal(s32 data) {
-	print_dbg("\r\nclock norm int");
+	// print_dbg("\r\nclock norm int");
 	// clock_external = !gpio_get_pin_value(B09); 
 }
 
@@ -1793,6 +1912,414 @@ static void es_process_ii(uint8_t i, int d) {
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// application midi code
+
+inline static u16 blend(u8 num, u8 mix) {
+	// num: [0, 127]
+	// mix: [0, 100], 0 == logish, 50 == linear, 100 == expish
+	u32 m;
+	u16 v;
+	
+	if (mix < 50) {
+		if (mix == 0) {
+			v = LOG[num];
+		}
+		else {
+			// log -> lin mix
+			m = ((LOG[num] * (50 - mix)) + ((num << 5) * mix)) / 50;
+			v = (u16)m;
+		}
+	}
+	else if (mix == 50) {
+		v = num << 5; // 128 << 5 == 4096
+	}
+	else {
+		if (mix >= 100) {
+			v = EXP2[num];
+		}
+		else {
+			// lin -> exp mix
+			mix -= 50;
+			m = (((num << 5) * (50 - mix)) + (EXP2[num] * mix)) / 50;
+			v = (u16)m;
+		}
+	}
+	
+	return v;
+}
+
+inline static void aout_set_pitch(u8 num) {
+	aout[3].target = SEMI[num] + pitch_offset;
+	if (port_active) { // portemento active
+		aout[3].step = (aout[3].slew >> 2) + 1;
+		aout[3].delta = ((aout[3].target - aout[3].now)<<16) / aout[3].step;
+		aout[3].a = aout[3].now<<16;
+	}
+	else {
+		aout[3].now = aout[3].target;
+	}	
+}
+
+inline static void aout_set_pitch_slew(u8 num, u8 port_time) {
+	// like aout_set_pitch but always slews with the given amount [0,256]
+	aout[3].target = SEMI[num] + pitch_offset;
+	aout[3].step = (EXP[port_time] >> 2) + 1;
+	aout[3].delta = ((aout[3].target - aout[3].now)<<16) / aout[3].step;
+	aout[3].a = aout[3].now<<16;
+}
+
+inline static void aout_set_velocity(u16 vel) {
+	// TODO: support slewing on velocity when in legato mode but only when
+	// restoring a previously played note
+	// aout[2].target = vel << 5; // 128 << 5 == 4096; 12-bit dac
+	aout[2].target = blend(vel, vel_shape);
+	aout[2].now = aout[2].target;
+	// print_dbg(" __vo: ");
+	// print_dbg_ulong(aout[2].target);
+}
+
+inline static void aout_set_tracking(u16 num) {
+	// aout[1].target = num << 5; // 128 << 5 == 4096; 12-bit dac
+	aout[1].target = blend(num, track_shape);
+	aout[1].now = aout[1].target;
+	// print_dbg(" __to: ");
+	// print_dbg_ulong(aout[1].target);
+}
+
+inline static void aout_set_a0(u8 num) {
+	// TODO: support non-linear mappings?
+	aout[0].target = num << 5;
+	aout[0].now = aout[0].target;
+}
+
+static void aout_clear(void) {
+	for (u8 i = 0; i < 4; i++) {
+		aout[i].step = 0;
+		aout[i].now = aout[i].target = 0;
+		// slew? a? delta?
+	}
+}
+
+static void midi_note_on(u8 ch, u8 num, u8 vel) {
+	// print_dbg("\r\n midi_note_on(), ch: ");
+	// print_dbg_ulong(ch);
+	// print_dbg(" num: ");
+	// print_dbg_ulong(num);
+	// print_dbg(" vel: ");
+	// print_dbg_ulong(vel);
+
+	if (num > MIDI_NOTE_MAX)
+		// drop notes outside CV range
+		return;
+
+	// keep track of held notes for legato
+	notes_hold(num, vel);
+		
+	// suspend slew cvTimer
+	slew_active = 0;
+	aout_set_pitch(num);
+	aout_set_velocity(vel);
+	aout_set_tracking(num);
+	aout_write();
+	
+	// print_dbg("\r\n    dac // p:");
+	// print_dbg_ulong(aout[3].target);
+	// print_dbg(" v: ");
+	// print_dbg_ulong(aout[2].target);
+	// print_dbg(" t: ");
+	// print_dbg_ulong(aout[1].target);
+	
+	gpio_set_gpio_pin(B00);
+	
+	slew_active = 1;
+	
+	reset_hys(); // FIXME: why? is this really correct?
+}
+
+static void midi_note_off(u8 ch, u8 num, u8 vel) {
+	// print_dbg("\r\n midi_note_off(), ch: ");
+	// print_dbg_ulong(ch);
+	// print_dbg(" num: ");
+	// print_dbg_ulong(num);
+	// print_dbg(" vel: ");
+	// print_dbg_ulong(vel);
+
+	if (num > MIDI_NOTE_MAX)
+		// drop notes outside CV range
+		return;
+		
+	if (sustain_active == 0) {
+		notes_release(num);
+
+		if (midi_legato) {
+			const held_note_t *prior = notes_get(kNotePriorityLast);
+			if (prior) {
+				// print_dbg("\r\n   prior // num: ");
+				// print_dbg_ulong(prior->num);
+				// print_dbg(" vel: ");
+				// print_dbg_ulong(prior->vel);
+
+				slew_active = 0;
+				aout_set_pitch(prior->num);
+				aout_set_velocity(prior->vel);
+				aout_set_tracking(prior->num);
+				aout_write();
+				slew_active = 1;
+				// retrigger edge?
+			}
+			else {
+				gpio_clr_gpio_pin(B00);
+			}
+		}
+		else {
+			// no legato mode
+			gpio_clr_gpio_pin(B00);
+		}
+	}
+}
+
+static void midi_channel_pressure(u8 ch, u8 val) {
+	// print_dbg("\r\n midi_channel_pressure(), ch: ");
+	// print_dbg_ulong(ch);
+	// print_dbg(" val: ");
+	// print_dbg_ulong(val);	
+}
+
+static void midi_pitch_bend(u8 ch, u16 bend) {
+	// print_dbg("\r\n midi_pitch_bend(), ch: ");
+	// print_dbg_ulong(ch);
+	// print_dbg(" bend: ");
+	// print_dbg_ulong(bend);
+	if (bend == MIDI_BEND_ZERO) {
+		pitch_offset = 0;
+	}
+	else if (bend > MIDI_BEND_ZERO) {
+		bend -= MIDI_BEND_ZERO;
+		pitch_offset = BEND1[bend >> 4];
+	}
+	else {
+		bend = MIDI_BEND_ZERO - bend - 1;
+		pitch_offset = -BEND1[bend >> 4];
+	}
+
+	// re-set pitch to pick up changed offset
+	const held_note_t *active = notes_get(kNotePriorityLast);
+	if (active) {
+		aout_set_pitch_slew(active->num, MIDI_BEND_SLEW);  // TODO: make slew configurable
+		aout_write();
+	}
+}
+
+static void midi_sustain(u8 ch, u8 val) {
+	if (val < 64) {
+		notes_init();
+		gpio_clr_gpio_pin(B00);
+		sustain_active = 0;
+	}
+	else {
+		sustain_active = 1;
+	}
+}
+
+static void midi_control_change(u8 ch, u8 num, u8 val) {
+	// print_dbg("\r\n midi_control_change(), ch: ");
+	// print_dbg_ulong(ch);
+	// print_dbg(" num: ");
+	// print_dbg_ulong(num);	
+	// print_dbg(" val: ");
+	// print_dbg_ulong(val);	
+	
+	switch (num) {
+		case 1:  // mod wheel
+			// TODO: set a small amount of slewing
+			// TODO: implement midi learn buy capturing the controller number when the
+			// front panel button is held down.
+			slew_active = 0;
+			aout_set_a0(val);
+			aout_write(); // should we just write the one?
+			slew_active = 1;
+			break;
+		case 64:  // sustain pedal
+			midi_sustain(ch, val);
+			break;
+		default:
+			break;
+	}
+}
+
+
+static void handler_MidiPollADC(s32 data) {
+	u8 i;
+	u16 cv;
+	
+	adc_convert(&adc);
+	
+	for (i = 0; i < 3; i++) {
+		if (ain[i].hys) {
+			switch (i) {
+				case 0:
+					// portamento
+					port_time = ((adc[i] + adc_last[i]) >> 1 >> 4);
+					aout[3].slew = EXP[port_time];
+					// slew is [0, 256]
+					// print_dbg("\r\nadc 0 / portamento: ");
+					// print_dbg_ulong(port_time);
+					// print_dbg(" exp: ");
+					// print_dbg_ulong(aout[3].slew);
+					break;
+				case 1:
+					// cv is [0, 4096] -- 4038 seems like the max returned from converter
+					cv = ((adc[i] + adc_last[i]) >> 1) / 40;  // [0, ~20]
+					track_shape = (u8)cv;
+					// print_dbg("\r\ntrack shape: ");
+					// print_dbg_ulong(cv);
+					break;
+				case 2:
+					cv = ((adc[i] + adc_last[i]) >> 1) / 40; // [0, ~20]
+					vel_shape = (u8)cv;
+					// print_dbg("\r\nvel shape: ");
+					// print_dbg_ulong(cv);
+					break;
+			}
+		}
+		else if (abs(((adc[i] + adc_last[i]) >> 1) - ain[i].latch) > POT_HYSTERESIS) {
+			ain[i].hys = 1;
+		}
+		adc_last[i] = adc[i];
+	}
+}
+
+static void handler_MidiConnect(s32 data) {
+	// print_dbg("\r\nmidi connect: 0x");
+	// print_dbg_hex(data);
+	
+	// disable es and stash global state
+	timer_remove(&clockTimer);
+	//timer_remove(&adcTimer); // done by handler_FtdiDisconnect
+	suspend.port_active = port_active;
+	for (u8 i = 0; i < 4; i++)
+		suspend.aout[i] = aout[i];
+		
+	process_ii = &es_midi_process_ii;
+	
+	notes_init();
+	midi_legato = 1; // FIXME: allow this to be controlled!
+	port_active = 1; // FIXME: allow this to be controlled!
+	sustain_active = 0;
+	pitch_offset = 0;
+
+	// reset outputs
+	slew_active = 0;
+	aout_clear();
+	aout_write();
+	gpio_clr_gpio_pin(B00);
+	slew_active = 1;
+
+	// switch handlers
+	app_event_handlers[ kEventPollADC ] = &handler_MidiPollADC;
+
+	reset_hys();
+	
+	// install timers
+	timer_add(&adcTimer, 27, &adcTimer_callback, NULL);
+	timer_add(&midiPollTimer, 13, &midi_poll_timer_callback, NULL);
+}
+
+static void handler_MidiDisconnect(s32 data) {
+	// print_dbg("\r\nmidi disconnect: 0x");
+	// print_dbg_hex(data);
+
+	// remove midi related timers
+	timer_remove(&midiPollTimer);
+	timer_remove(&adcTimer); // remove ours
+
+	// reset outputs
+	slew_active = 0;
+	aout_clear();
+	aout_write();
+	gpio_clr_gpio_pin(B00);
+	slew_active = 1;
+
+	reset_hys();
+
+  // re-enable es
+	app_event_handlers[ kEventPollADC ] = &handler_PollADC;
+	
+	// restore es global state
+	port_active = suspend.port_active;
+	for (u8 i = 0; i < 4; i++)
+		aout[i] = suspend.aout[i];
+	
+	process_ii = &es_process_ii;
+	
+	// FIXME: copied from main()
+	//timer_add(&adcTimer, 5, &adcTimer_callback, NULL); // done by handler_MonomeConnect
+	timer_add(&clockTimer, 6, &clockTimer_callback, NULL);
+}
+
+static void handler_MidiPacket(s32 raw) {
+	static u8 com;
+	static u8 ch, num, val;
+	static u16 bend;
+
+	u32 data = (u32)raw;
+
+	// print_dbg("\r\nmidi packet: 0x");
+	// print_dbg_hex(data);
+
+	// FIXME: ch seems to always be 0?
+
+	// check status byte  
+  com = (data & 0xf0000000) >> 28;
+  ch  = (data & 0x0f000000) >> 24;
+	switch (com) {
+  case 0x9:
+		// note on
+  	num = (data & 0xff0000) >> 16;
+  	val = (data &   0xff00) >> 8;
+		if (val == 0)
+			// note on with zero velocity is note off (per midi spec)
+			midi_note_off(ch, num, val);
+		else
+			midi_note_on(ch, num, val);
+		break;
+	case 0x8:
+		// note off (with velocity)
+    num = (data & 0xff0000) >> 16;
+    val = (data &   0xff00) >> 8;
+		midi_note_off(ch, num, val);
+		break;
+	case 0xd:
+		// channel pressure
+		val = (data & 0x7f0000) >> 16;
+		midi_channel_pressure(ch, val);
+		break;
+	case 0xe:
+		// pitch bend
+		bend = ((data & 0x00ff0000) >> 16) | ((data & 0xff00) >> 1);
+		midi_pitch_bend(ch, bend);
+		break;
+	case 0xb:
+		// control change
+		num = (data & 0xff0000) >> 16;
+    val = (data &   0xff00) >> 8;
+		midi_control_change(ch, num, val);
+		break;
+	default:
+		// TODO: poly pressure, program change, chanel mode *, rtc, etc
+		break;
+  }
+}
+
+static void es_midi_process_ii(uint8_t i, int d) {
+	// for now we do nothing
+	// tt clocked arp would be fun
+}
+
 
 
 
@@ -1810,7 +2337,11 @@ static inline void assign_main_event_handlers(void) {
 	app_event_handlers[ kEventMonomeDisconnect ]	= &handler_None ;
 	app_event_handlers[ kEventMonomePoll ]	= &handler_MonomePoll ;
 	app_event_handlers[ kEventMonomeRefresh ]	= &handler_MonomeRefresh ;
-	app_event_handlers[ kEventMonomeGridKey ]	= &handler_MonomeGridKey ;
+	app_event_handlers[ kEventMonomeGridKey ]       = &handler_MonomeGridKey ;
+
+	app_event_handlers[ kEventMidiConnect ]	    = &handler_MidiConnect ;
+	app_event_handlers[ kEventMidiDisconnect ]  = &handler_MidiDisconnect ;
+	app_event_handlers[ kEventMidiPacket ]      = &handler_MidiPacket ;
 }
 
 // app event loop
@@ -2008,6 +2539,9 @@ int main(void)
 	spi_write(SPI,0xff);
 	spi_write(SPI,0xff);
 	spi_unselectChip(SPI,DAC_SPI);
+	
+	// ensure cvTimer_callback does something
+	slew_active = 1;
 
 	timer_add(&clockTimer,6,&clockTimer_callback, NULL);
 	timer_add(&cvTimer,5,&cvTimer_callback, NULL);
