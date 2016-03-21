@@ -118,7 +118,6 @@ INC_PATH = \
        ../skeleton/usb/ftdi \
        ../skeleton/usb/hid \
        ../skeleton/usb/midi \
-       ../teletype \
        avr32/boards                                       \
        avr32/drivers/cpu/cycle_counter                    \
        avr32/drivers/flashc                               \
